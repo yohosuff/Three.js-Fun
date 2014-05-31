@@ -23,34 +23,22 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="index.html" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="index.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.40865386" vertical-offset="918" max-vertical-offset="1717">
-              <caret line="69" column="22" selection-start-line="69" selection-start-column="22" selection-end-line="69" selection-end-column="22" />
+            <state vertical-scroll-proportion="-3.9019608" vertical-offset="73" max-vertical-offset="1700">
+              <caret line="16" column="29" selection-start-line="16" selection-start-column="27" selection-end-line="16" selection-end-column="29" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="threex.rendererstats.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/threex.rendererstats.js">
+      <file leaf-file-name="MyJavascriptFunctions.js" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/js/MyJavascriptFunctions.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="51" max-vertical-offset="1156">
-              <caret line="21" column="50" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="50" />
+            <state vertical-scroll-proportion="0.35846153" vertical-offset="940" max-vertical-offset="2057">
+              <caret line="69" column="114" selection-start-line="69" selection-start-column="114" selection-end-line="69" selection-end-column="114" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MyJavascriptFunctions.js" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/MyJavascriptFunctions.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="357" max-vertical-offset="1428">
-              <caret line="22" column="69" selection-start-line="22" selection-start-column="69" selection-end-line="22" selection-end-column="69" />
-              <folding>
-                <element signature="e#2636#2680#0" expanded="false" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -67,6 +55,7 @@
       <list>
         <option value="$PROJECT_DIR$/MyJavascriptFunctions.js" />
         <option value="$PROJECT_DIR$/index.html" />
+        <option value="$PROJECT_DIR$/js/MyJavascriptFunctions.js" />
       </list>
     </option>
   </component>
@@ -108,7 +97,7 @@
     <property name="recentsLimit" value="5" />
     <property name="FullScreen" value="false" />
     <property name="LayoutCode.rearrangeEntriesHTML" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/threex.rendererstats.js" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/js/MyJavascriptFunctions.js" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -250,28 +239,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/threex.rendererstats.js">
+    <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="51" max-vertical-offset="1156">
-          <caret line="21" column="50" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="50" />
+        <state vertical-scroll-proportion="-3.9019608" vertical-offset="73" max-vertical-offset="1700">
+          <caret line="16" column="29" selection-start-line="16" selection-start-column="27" selection-end-line="16" selection-end-column="29" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MyJavascriptFunctions.js">
+    <entry file="file://$PROJECT_DIR$/js/MyJavascriptFunctions.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="357" max-vertical-offset="1428">
-          <caret line="22" column="69" selection-start-line="22" selection-start-column="69" selection-end-line="22" selection-end-column="69" />
-          <folding>
-            <element signature="e#2636#2680#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.40865386" vertical-offset="918" max-vertical-offset="1717">
-          <caret line="69" column="22" selection-start-line="69" selection-start-column="22" selection-end-line="69" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.35846153" vertical-offset="940" max-vertical-offset="2057">
+          <caret line="69" column="114" selection-start-line="69" selection-start-column="114" selection-end-line="69" selection-end-column="114" />
           <folding />
         </state>
       </provider>

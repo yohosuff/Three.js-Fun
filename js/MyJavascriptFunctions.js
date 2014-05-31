@@ -1,4 +1,43 @@
-var enableLogging = false;
+var enableLogging = true;
+
+var projector = new THREE.Projector();
+var forwardVector = new THREE.Vector3(0, 0, 0);
+
+var Picking = function () {
+    /*
+    scene.children.forEach(function( cube ) {
+        if(cube instanceof THREE.Mesh)
+            cube.material.color.setRGB( 0,1,0 );
+    });
+    */
+
+    var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
+    var cursorDirection = forwardVector.clone();
+    cursorDirection.applyEuler(totalRotation);
+    var rayCaster = projector.pickingRay(cursorDirection.clone(), camera);
+    var intersects = rayCaster.intersectObjects(scene.children);
+    if(intersects.length > 0)
+    {
+        var intersection = intersects[0],
+            obj = intersection.object;
+        obj.material.color.setRGB(1.0, 0, 0);
+    }
+};
+
+var PlaceCursor = function () {
+    var cursor	= document.createElement( 'label' );
+    cursor.innerHTML = "+";
+    cursor.style.position = 'absolute';
+    cursor.style.color = 'green';
+    cursor.disabled = true;
+    document.body.appendChild( cursor );
+
+    var rect = cursor.getBoundingClientRect();
+
+    cursor.style.left = (window.innerWidth / 2 - rect.width / 2) + 'px';
+    cursor.style.bottom	= (window.innerHeight / 2 - rect.height / 2) + 'px';
+
+};
 
 var HandleControls = function()
 {
@@ -21,7 +60,6 @@ var HandleControls = function()
     if (keyStates[65]) cameraYawObject.position.sub(strafeDirection); //a
     if (keyStates[69]) cameraYawObject.position.add(upDirection); //e
     if (keyStates[81]) cameraYawObject.position.sub(upDirection); //q
-
 };
 
 function AddRandomCube() {
@@ -29,7 +67,7 @@ function AddRandomCube() {
         Math.floor((Math.random() * 21) - 9),
         Math.floor((Math.random() * 21) - 9),
         Math.floor((Math.random() * 21) - 9));
-    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: true});
+    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: false});
     var cube = new THREE.Mesh(geometry, material);
 
     cube.position.x = Math.floor((Math.random() * 201) - 99);
@@ -53,7 +91,7 @@ var LockPointer = function()
             element.webkitRequestPointerLock;
         element.requestPointerLock();
     }
-}
+};
 
 var GoFullScreen = function()
 {
@@ -69,12 +107,9 @@ var GoFullScreen = function()
         element.requestFullscreen = element.webkitRequestFullscreen;
         element.requestFullscreen();
     }
-}
+};
 
 var log = function (message) {
     if(enableLogging)
         console.log(message);
-}
-/**
- * Created by yohosuff on 5/31/2014.
- */
+};

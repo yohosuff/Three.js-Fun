@@ -10,14 +10,13 @@
 
         body {
             margin: 0;
-
         }
 
     </style>
-    <script src="three.min.js"></script>
-    <script src="threex.windowresize.js"></script>
-    <script src="jquery-2.1.1.min.js"></script>
-    <script src="MyJavascriptFunctions.js"></script>
+    <script src="js\three.min.js"></script>
+    <script src="js\threex.windowresize.js"></script>
+    <script src="js\jquery-2.1.1.min.js"></script>
+    <script src="js\MyJavascriptFunctions.js"></script>
 </head>
 <body>
 <script>
@@ -39,6 +38,12 @@
     cameraYawObject.add(camera);
     scene.add(cameraYawObject);
 
+    /*
+    var globalMaterial = new THREE.MeshBasicMaterial();
+    globalMaterial.color.setRGB(0,1,0);
+    scene.overrideMaterial = globalMaterial;
+    */
+
     for (var i = 0; i < 300; ++i)
         scene.add(AddRandomCube());
 
@@ -49,22 +54,16 @@
     document.addEventListener('keydown', keyDown, false);
     document.addEventListener('keyup', keyUp, false);
 
+    PlaceCursor();
+
     var render = function () {
         requestAnimationFrame(render);
         HandleControls();
+        Picking();
         renderer.render(scene, camera);
     };
 
     render();
-
-    var cursor	= document.createElement( 'label' );
-    cursor.innerHTML = "+";
-    cursor.style.position = 'absolute';
-    cursor.style.left = (window.innerWidth / 2) + 'px';
-    cursor.style.bottom	= (window.innerHeight / 2) + 'px';;
-    cursor.style.color = 'green';
-    cursor.disabled = true;
-    document.body.appendChild( cursor );
 
     function click(event) {
         LockPointer();
@@ -75,11 +74,11 @@
         camera.rotation.x -= event.webkitMovementY * rotationFactor;
         camera.rotation.x = THREE.Math.clamp(camera.rotation.x, -Math.PI / 2, Math.PI / 2);
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
+
     }
 
     function keyDown(event) {
         keyStates[event.keyCode] = true;
-        log(event.keyCode);
 
         if(event.keyCode == 32)
         {

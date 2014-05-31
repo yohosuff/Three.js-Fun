@@ -1,16 +1,9 @@
 var enableLogging = true;
-
 var projector = new THREE.Projector();
 var forwardVector = new THREE.Vector3(0, 0, 0);
+var pickedObject = null;
 
 var Picking = function () {
-    /*
-    scene.children.forEach(function( cube ) {
-        if(cube instanceof THREE.Mesh)
-            cube.material.color.setRGB( 0,1,0 );
-    });
-    */
-
     var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
     var cursorDirection = forwardVector.clone();
     cursorDirection.applyEuler(totalRotation);
@@ -20,7 +13,14 @@ var Picking = function () {
     {
         var intersection = intersects[0],
             obj = intersection.object;
-        obj.material.color.setRGB(1.0, 0, 0);
+
+        //obj.material.color.setRGB(1.0, 0, 0);
+
+        pickedObject = obj;
+    }
+    else
+    {
+        pickedObject = null;
     }
 };
 

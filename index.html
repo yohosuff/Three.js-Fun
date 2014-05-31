@@ -38,12 +38,6 @@
     cameraYawObject.add(camera);
     scene.add(cameraYawObject);
 
-    /*
-    var globalMaterial = new THREE.MeshBasicMaterial();
-    globalMaterial.color.setRGB(0,1,0);
-    scene.overrideMaterial = globalMaterial;
-    */
-
     for (var i = 0; i < 300; ++i)
         scene.add(AddRandomCube());
 
@@ -53,6 +47,7 @@
     document.addEventListener('click', click, false);
     document.addEventListener('keydown', keyDown, false);
     document.addEventListener('keyup', keyUp, false);
+    document.addEventListener('mousedown', mouseDown, false);
 
     PlaceCursor();
 
@@ -60,6 +55,7 @@
         requestAnimationFrame(render);
         HandleControls();
         Picking();
+
         renderer.render(scene, camera);
     };
 
@@ -74,7 +70,12 @@
         camera.rotation.x -= event.webkitMovementY * rotationFactor;
         camera.rotation.x = THREE.Math.clamp(camera.rotation.x, -Math.PI / 2, Math.PI / 2);
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
+    }
 
+    function mouseDown(event)
+    {
+        if(pickedObject != null)
+            pickedObject.material.color.setRGB(0,0,1);
     }
 
     function keyDown(event) {

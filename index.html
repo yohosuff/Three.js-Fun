@@ -10,12 +10,14 @@
 
         body {
             margin: 0;
+
         }
+
     </style>
     <script src="three.min.js"></script>
     <script src="threex.windowresize.js"></script>
     <script src="jquery-2.1.1.min.js"></script>
-
+    <script src="MyJavascriptFunctions.js"></script>
 </head>
 <body>
 <script>
@@ -25,8 +27,9 @@
     var renderer = new THREE.WebGLRenderer();
     var keyStates = [];
     var speedFactor = 1;
-    var screenWidth = screen.width;
-    var screenHeight = screen.height;
+    var rotationFactor = 1 / 250;
+
+    enableLogging = true;
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -36,90 +39,37 @@
     cameraYawObject.add(camera);
     scene.add(cameraYawObject);
 
-
-
-    for (var i = 0; i < 1000; ++i)
+    for (var i = 0; i < 300; ++i)
         scene.add(AddRandomCube());
+
+    var context = renderer.domElement.getContext("2d");
+
+    document.addEventListener('mousemove', mouseMove, false);
+    document.addEventListener('click', click, false);
+    document.addEventListener('keydown', keyDown, false);
+    document.addEventListener('keyup', keyUp, false);
 
     var render = function () {
         requestAnimationFrame(render);
-
-        var forwardDirection = new THREE.Vector3(0, 0, -1);
-        forwardDirection.applyEuler(new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ"));
-        var strafeDirection = new THREE.Vector3(1, 0, 0);
-        strafeDirection.applyEuler(new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ"));
-
-        forwardDirection.multiplyScalar(speedFactor);
-        strafeDirection.multiplyScalar(speedFactor);
-
-        if (keyStates[87]) cameraYawObject.position.add(forwardDirection);
-        if (keyStates[83]) cameraYawObject.position.sub(forwardDirection);
-        if (keyStates[68]) cameraYawObject.position.add(strafeDirection);
-        if (keyStates[65]) cameraYawObject.position.sub(strafeDirection);
-
+        HandleControls();
         renderer.render(scene, camera);
     };
 
     render();
 
-    function AddRandomCube() {
-        var geometry = new THREE.BoxGeometry(
-                Math.floor((Math.random() * 21) - 9),
-                Math.floor((Math.random() * 21) - 9),
-                Math.floor((Math.random() * 21) - 9));
-        var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: true});
-        var cube = new THREE.Mesh(geometry, material);
-
-        cube.position.x = Math.floor((Math.random() * 201) - 99);
-        cube.position.y = Math.floor((Math.random() * 201) - 99);
-        cube.position.z = Math.floor((Math.random() * 201) - 99);
-
-        return cube;
-    }
-
-    document.addEventListener('mousemove', mouseMove, false);
-    document.addEventListener('click', click, false);
-    document.addEventListener('keydown', keydown, false);
-    document.addEventListener('keyup', keyUp, false);
+    var cursor	= document.createElement( 'label' );
+    cursor.innerHTML = "+";
+    cursor.style.position = 'absolute';
+    cursor.style.left = (window.innerWidth / 2) + 'px';
+    cursor.style.bottom	= (window.innerHeight / 2) + 'px';;
+    cursor.style.color = 'green';
+    cursor.disabled = true;
+    document.body.appendChild( cursor );
 
     function click(event) {
         LockPointer();
-        GoFullScreen();
+        //GoFullScreen();
     }
-
-    var LockPointer = function()
-    {
-        var havePointerLock = 'pointerLockElement' in document ||
-                'mozPointerLockElement' in document ||
-                'webkitPointerLockElement' in document;
-
-        if (havePointerLock) {
-            var element = renderer.domElement;
-            element.requestPointerLock =
-                    element.requestPointerLock ||
-                    element.mozRequestPointerLock ||
-                    element.webkitRequestPointerLock;
-            element.requestPointerLock();
-        }
-    }
-
-    var GoFullScreen = function()
-    {
-        THREEx.WindowResize(renderer, camera);
-
-        var fullscreenEnabled = document.fullscreenEnabled ||
-                document.webkitFullscreenEnabled ||
-                document.mozFullScreenEnabled ||
-                document.msFullscreenEnabled;
-
-        if (fullscreenEnabled) {
-            var element = renderer.domElement;
-            element.requestFullscreen = element.webkitRequestFullscreen;
-            element.requestFullscreen();
-        }
-    }
-
-    var rotationFactor = 1 / 250;
 
     function mouseMove(event) {
         camera.rotation.x -= event.webkitMovementY * rotationFactor;
@@ -127,10 +77,15 @@
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
     }
 
-    function keydown(event) {
+    function keyDown(event) {
         keyStates[event.keyCode] = true;
-        //console.log(event.keyCode);
-        console.log(renderer.domElement.width + 'x' + renderer.domElement.height);
+        log(event.keyCode);
+
+        if(event.keyCode == 32)
+        {
+            for (var i = 0; i < 10; ++i)
+                scene.add(AddRandomCube());
+        }
     }
 
     function keyUp(event) {

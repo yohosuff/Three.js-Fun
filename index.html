@@ -32,7 +32,6 @@
     var rotationFactor = 1 / 500;
     var world, timeStep = 1 / 60;
 
-    initializeEverything();
 
     function AddDirectionalLight() {
         var directionalLight = new THREE.DirectionalLight(0xffffff);
@@ -53,16 +52,6 @@
         scene.add(directionalLight);
     }
 
-    var context = renderer.domElement.getContext("2d");
-
-    document.addEventListener('mousemove', mouseMove, false);
-    document.addEventListener('click', click, false);
-    document.addEventListener('keydown', keyDown, false);
-    document.addEventListener('keyup', keyUp, false);
-    document.addEventListener('mousedown', mouseDown, false);
-    document.addEventListener('mouseup', mouseUp, false);
-
-    PlaceCursor();
 
     var stats;
 
@@ -74,7 +63,6 @@
         document.body.appendChild(stats.domElement);
     }
 
-    AddStats();
 
     var render = function () {
         requestAnimationFrame(render);
@@ -85,7 +73,7 @@
         stats.update();
     };
 
-    render();
+    initializeEverything();
 
     function initializeEverything() {
         enableLogging = true;
@@ -101,7 +89,9 @@
         document.body.appendChild(renderer.domElement);
 
         camera.position = new THREE.Vector3(0, 0, 0);
-        cameraYawObject.position = new THREE.Vector3(0, 50, 0);
+        camera.rotation.x = -0.25;
+        cameraYawObject.position = new THREE.Vector3(76, 114, 187);
+        cameraYawObject.rotation.y = 0.384;
         cameraYawObject.add(camera);
         scene.add(cameraYawObject);
 
@@ -116,7 +106,16 @@
 
         AddDirectionalLight();
 
+        document.addEventListener('mousemove', mouseMove, false);
+        document.addEventListener('click', click, false);
+        document.addEventListener('keydown', keyDown, false);
+        document.addEventListener('keyup', keyUp, false);
+        document.addEventListener('mousedown', mouseDown, false);
+        document.addEventListener('mouseup', mouseUp, false);
 
+        PlaceCursor();
+        AddStats();
+        render();
     }
 
     function updatePhysics() {
@@ -148,15 +147,15 @@
 
     function mouseDown(event) {
         mouseIsDown = true;
+
+        logCameraInformation();
     }
 
     function keyDown(event) {
         keyStates[event.keyCode] = true;
 
-        if (event.keyCode == 32) {
-            for (var i = 0; i < 10; ++i)
-                scene.add(AddRandomCube());
-        }
+        if (event.keyCode == 32) scene.add(AddRandomCube());
+
     }
 
     function keyUp(event) {

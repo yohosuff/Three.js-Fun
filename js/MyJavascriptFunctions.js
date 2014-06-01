@@ -109,13 +109,12 @@ function AddRandomCube() {
 
     world.add(cube.physicsBody);
     scene.add(cube);
-    //bodies.push([body, cube]);
 
 }
 
 function AddGround() {
     var width = 1000;
-    var height = 1;
+    var height = 10;
     var length = 1000;
 
     var geometry = new THREE.BoxGeometry(width, height, length);
@@ -176,3 +175,33 @@ var log = function (message) {
     if(enableLogging)
         console.log(message);
 };
+
+function logCameraInformation() {
+    var logString = "";
+    logString += camera.position.x;
+    logString += ", ";
+    logString += camera.position.y;
+    logString += ", ";
+    logString += camera.position.z;
+    logString += "   ";
+    logString += camera.rotation.x;
+    logString += ", ";
+    logString += camera.rotation.y;
+    logString += ", ";
+    logString += camera.rotation.z;
+    logString += "\n";
+    logString += cameraYawObject.position.x;
+    logString += ", ";
+    logString += cameraYawObject.position.y;
+    logString += ", ";
+    logString += cameraYawObject.position.z;
+    logString += "   ";
+    logString += cameraYawObject.rotation.x;
+    logString += ", ";
+    logString += cameraYawObject.rotation.y;
+    logString += ", ";
+    logString += cameraYawObject.rotation.z;
+
+
+    log(logString);
+}

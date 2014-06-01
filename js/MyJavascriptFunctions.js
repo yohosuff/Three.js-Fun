@@ -63,6 +63,20 @@ var HandleControls = function()
     if (keyStates[65]) cameraYawObject.position.sub(strafeDirection); //a
     if (keyStates[69]) cameraYawObject.position.add(upDirection); //e
     if (keyStates[81]) cameraYawObject.position.sub(upDirection); //q
+
+    if(mouseIsDown)
+    {
+        if(pickedObject != null)
+        {
+            var forceVector = forwardDirection.clone();
+            forceVector.multiplyScalar(100);
+            forceVector = new CANNON.Vec3(forceVector.x, forceVector.y, forceVector.z);
+
+            var point = new CANNON.Vec3(pickedObject.contactPoint.x, pickedObject.contactPoint.y, pickedObject.contactPoint.z);
+
+            pickedObject.physicsBody.applyForce(forceVector, point);
+        }
+    }
 };
 
 var bodies = [];
@@ -74,11 +88,11 @@ function AddRandomCube() {
     var length = Math.floor(Math.random() * 10 + 1);
 
     var geometry = new THREE.BoxGeometry(width, height, length);
-    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: true});
+    var material = new THREE.MeshLambertMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: false});
     var cube = new THREE.Mesh(geometry, material);
 
     cube.position.x = Math.floor(Math.random() * 100 - 50);
-    cube.position.y = Math.floor(Math.random() * 100 - 50);
+    cube.position.y = Math.floor(Math.random() * 100 + 10);
     cube.position.z = Math.floor(Math.random() * 100 - 50);
 
     var shape = new CANNON.Box(new CANNON.Vec3(width/2,height/2,length/2));
@@ -89,48 +103,40 @@ function AddRandomCube() {
     body.position.y = cube.position.y;
     body.position.z = cube.position.z;
 
-    cube.joeysBody = body;
+    body.allowSleep = true;
+    cube.physicsBody = body;
+    cube.castShadow = true;
 
-    world.add(cube.joeysBody);
+    world.add(cube.physicsBody);
     scene.add(cube);
     //bodies.push([body, cube]);
 
 }
 
-function AddCube() {
-    /*
-     var width = Math.floor((Math.random() * 21) - 9);
-     var height = Math.floor((Math.random() * 21) - 9);
-     var length = Math.floor((Math.random() * 21) - 9);
-     */
-
+function AddGround() {
     var width = 1000;
     var height = 1;
     var length = 1000;
 
     var geometry = new THREE.BoxGeometry(width, height, length);
-    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: true});
-    var cube = new THREE.Mesh(geometry, material);
+    var material = new THREE.MeshLambertMaterial({color: 'blue'});
+    var floor = new THREE.Mesh(geometry, material);
 
-    cube.position.x = Math.floor(0);
-    cube.position.y = Math.floor(0);
-    cube.position.z = Math.floor(0);
+    floor.position = new THREE.Vector3(0,0,0);
 
     var shape = new CANNON.Box(new CANNON.Vec3(width/2,height/2,length/2));
-    var mass = 1;
-    var body = new CANNON.RigidBody(0,shape);
+    var mass = 0;
+    var body = new CANNON.RigidBody(mass, shape);
 
-    body.position.x = cube.position.x;
-    body.position.y = cube.position.y;
-    body.position.z = cube.position.z;
+    body.position.x = floor.position.x;
+    body.position.y = floor.position.y;
+    body.position.z = floor.position.z;
 
+    floor.physicsBody = body;
+    floor.receiveShadow = true;
 
-
-    cube.joeysBody = body;
-
-    world.add(cube.joeysBody);
-    scene.add(cube);
-    //bodies.push([body, cube]);
+    world.add(floor.physicsBody);
+    scene.add(floor);
 
 }
 

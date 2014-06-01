@@ -18,34 +18,40 @@
     <script src="js\jquery-2.1.1.min.js"></script>
     <script src="js\MyJavascriptFunctions.js"></script>
     <script src="js\cannon.min.js"></script>
+    <script src="js\stats.min.js"></script>
 </head>
 <body>
 <script>
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
     var cameraYawObject = new THREE.Object3D();
-    var renderer = new THREE.WebGLRenderer();
+    var renderer = new THREE.WebGLRenderer({antialias: true});
     var keyStates = [];
+    var mouseIsDown = false;
     var speedFactor = 1;
-    var rotationFactor = 1 / 250;
-    var world, timeStep=1/60;
+    var rotationFactor = 1 / 500;
+    var world, timeStep = 1 / 60;
 
-    enableLogging = true;
+    initializeEverything();
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    function AddDirectionalLight() {
+        var directionalLight = new THREE.DirectionalLight(0xffffff);
 
-    camera.position = new THREE.Vector3(0, 0, 0);
-    cameraYawObject.position = new THREE.Vector3(0, 0, 0);
-    cameraYawObject.add(camera);
-    scene.add(cameraYawObject);
+        directionalLight.position.set(0, 100, 0);
 
-    initCannon();
+        directionalLight.castShadow = true;
+        directionalLight.shadowDarkness = 1.0;
+        directionalLight.shadowCameraVisible = true;
+        directionalLight.shadowBias = 0.01;
+        directionalLight.shadowCameraRight = 500;
+        directionalLight.shadowCameraLeft = -500;
+        directionalLight.shadowCameraTop = 500;
+        directionalLight.shadowCameraBottom = -500;
+        directionalLight.shadowCameraNear = 0;
+        directionalLight.shadowCameraFar = 110;
 
-    for (var i = 0; i < 50; ++i)
-        AddRandomCube();
-
-    //AddCube();
+        scene.add(directionalLight);
+    }
 
     var context = renderer.domElement.getContext("2d");
 
@@ -54,8 +60,21 @@
     document.addEventListener('keydown', keyDown, false);
     document.addEventListener('keyup', keyUp, false);
     document.addEventListener('mousedown', mouseDown, false);
+    document.addEventListener('mouseup', mouseUp, false);
 
     PlaceCursor();
+
+    var stats;
+
+    function AddStats() {
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.top = '0px';
+        stats.domElement.style.zIndex = 100;
+        document.body.appendChild(stats.domElement);
+    }
+
+    AddStats();
 
     var render = function () {
         requestAnimationFrame(render);
@@ -63,42 +82,53 @@
         Picking();
         updatePhysics();
         renderer.render(scene, camera);
+        stats.update();
     };
 
     render();
 
-
-
-    function initCannon() {
+    function initializeEverything() {
+        enableLogging = true;
 
         world = new CANNON.World();
-        world.gravity.set(0,0,0);
+        world.gravity.set(0, 0, 0);
         world.broadphase = new CANNON.NaiveBroadphase();
         world.solver.iterations = 10;
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMapEnabled = true;
+        renderer.shadowMapType = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        camera.position = new THREE.Vector3(0, 0, 0);
+        cameraYawObject.position = new THREE.Vector3(0, 50, 0);
+        cameraYawObject.add(camera);
+        scene.add(cameraYawObject);
+
+        for (var i = 0; i < 10; ++i)
+            AddRandomCube();
+
+        AddGround();
+
+        // add subtle blue ambient lighting
+        var ambientLight = new THREE.AmbientLight(0x000044);
+        scene.add(ambientLight);
+
+        AddDirectionalLight();
+
+
     }
 
     function updatePhysics() {
-        // Step the physics world
         world.step(timeStep);
 
-        for(var i = 0; i < scene.children.length; ++i)
-        {
+        for (var i = 0; i < scene.children.length; ++i) {
             var obj = scene.children[i];
-
-            if(obj instanceof THREE.Mesh)
-            {
-                obj.joeysBody.position.copy(obj.position);
-                obj.joeysBody.quaternion.copy(obj.quaternion);
+            if (obj instanceof THREE.Mesh) {
+                obj.physicsBody.position.copy(obj.position);
+                obj.physicsBody.quaternion.copy(obj.quaternion);
             }
-
-            //bodies[i][0].position.copy(bodies[i][1].position);
-            //bodies[i][0].quaternion.copy(bodies[i][1].quaternion);
         }
-
-        // Copy coordinates from Cannon.js to Three.js
-        //body.position.copy(mesh.position);
-        //body.quaternion.copy(mesh.quaternion);
-
     }
 
     function click(event) {
@@ -112,29 +142,18 @@
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
     }
 
-    function mouseDown(event)
-    {
-        if(pickedObject != null)
-        {
-            //pickedObject.material.color.setRGB(0,0,1);
+    function mouseUp(event) {
+        mouseIsDown = false;
+    }
 
-            //pickedObject.joeysBody.applyForce(new CANNON.Vec3(0,1000,0), pickedObject.joeysBody.position);
-            var forceVector = forwardDirection.clone();
-            forceVector.multiplyScalar(100);
-            forceVector = new CANNON.Vec3(forceVector.x, forceVector.y, forceVector.z);
-
-            var point = new CANNON.Vec3(pickedObject.contactPoint.x, pickedObject.contactPoint.y, pickedObject.contactPoint.z);
-
-            pickedObject.joeysBody.applyForce(forceVector, point);
-        }
-
+    function mouseDown(event) {
+        mouseIsDown = true;
     }
 
     function keyDown(event) {
         keyStates[event.keyCode] = true;
 
-        if(event.keyCode == 32)
-        {
+        if (event.keyCode == 32) {
             for (var i = 0; i < 10; ++i)
                 scene.add(AddRandomCube());
         }

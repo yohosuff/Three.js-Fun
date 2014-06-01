@@ -17,6 +17,7 @@ var Picking = function () {
         //obj.material.color.setRGB(1.0, 0, 0);
 
         pickedObject = obj;
+        pickedObject.contactPoint = intersection.point;
     }
     else
     {
@@ -39,10 +40,12 @@ var PlaceCursor = function () {
 
 };
 
+var forwardDirection = null;
+
 var HandleControls = function()
 {
     var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
-    var forwardDirection = new THREE.Vector3(0, 0, -1);
+    forwardDirection = new THREE.Vector3(0, 0, -1);
     var strafeDirection = new THREE.Vector3(1, 0, 0);
     var upDirection = new THREE.Vector3(0,1,0);
 
@@ -62,19 +65,73 @@ var HandleControls = function()
     if (keyStates[81]) cameraYawObject.position.sub(upDirection); //q
 };
 
+var bodies = [];
+
 function AddRandomCube() {
-    var geometry = new THREE.BoxGeometry(
-        Math.floor((Math.random() * 21) - 9),
-        Math.floor((Math.random() * 21) - 9),
-        Math.floor((Math.random() * 21) - 9));
-    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: false});
+
+    var width = Math.floor(Math.random() * 10 + 1);
+    var height = Math.floor(Math.random() * 10 + 1);
+    var length = Math.floor(Math.random() * 10 + 1);
+
+    var geometry = new THREE.BoxGeometry(width, height, length);
+    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: true});
     var cube = new THREE.Mesh(geometry, material);
 
-    cube.position.x = Math.floor((Math.random() * 201) - 99);
-    cube.position.y = Math.floor((Math.random() * 201) - 99);
-    cube.position.z = Math.floor((Math.random() * 201) - 99);
+    cube.position.x = Math.floor(Math.random() * 100 - 50);
+    cube.position.y = Math.floor(Math.random() * 100 - 50);
+    cube.position.z = Math.floor(Math.random() * 100 - 50);
 
-    return cube;
+    var shape = new CANNON.Box(new CANNON.Vec3(width/2,height/2,length/2));
+    var mass = 1;
+    var body = new CANNON.RigidBody(mass,shape);
+
+    body.position.x = cube.position.x;
+    body.position.y = cube.position.y;
+    body.position.z = cube.position.z;
+
+    cube.joeysBody = body;
+
+    world.add(cube.joeysBody);
+    scene.add(cube);
+    //bodies.push([body, cube]);
+
+}
+
+function AddCube() {
+    /*
+     var width = Math.floor((Math.random() * 21) - 9);
+     var height = Math.floor((Math.random() * 21) - 9);
+     var length = Math.floor((Math.random() * 21) - 9);
+     */
+
+    var width = 1000;
+    var height = 1;
+    var length = 1000;
+
+    var geometry = new THREE.BoxGeometry(width, height, length);
+    var material = new THREE.MeshBasicMaterial({color: Math.floor((Math.random() * 10000000000)), wireframe: true});
+    var cube = new THREE.Mesh(geometry, material);
+
+    cube.position.x = Math.floor(0);
+    cube.position.y = Math.floor(0);
+    cube.position.z = Math.floor(0);
+
+    var shape = new CANNON.Box(new CANNON.Vec3(width/2,height/2,length/2));
+    var mass = 1;
+    var body = new CANNON.RigidBody(0,shape);
+
+    body.position.x = cube.position.x;
+    body.position.y = cube.position.y;
+    body.position.z = cube.position.z;
+
+
+
+    cube.joeysBody = body;
+
+    world.add(cube.joeysBody);
+    scene.add(cube);
+    //bodies.push([body, cube]);
+
 }
 
 var LockPointer = function()

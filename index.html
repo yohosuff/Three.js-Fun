@@ -17,6 +17,7 @@
     <script src="js\threex.windowresize.js"></script>
     <script src="js\jquery-2.1.1.min.js"></script>
     <script src="js\MyJavascriptFunctions.js"></script>
+    <script src="js\cannon.min.js"></script>
 </head>
 <body>
 <script>
@@ -27,6 +28,7 @@
     var keyStates = [];
     var speedFactor = 1;
     var rotationFactor = 1 / 250;
+    var world, timeStep=1/60;
 
     enableLogging = true;
 
@@ -38,8 +40,12 @@
     cameraYawObject.add(camera);
     scene.add(cameraYawObject);
 
-    for (var i = 0; i < 300; ++i)
-        scene.add(AddRandomCube());
+    initCannon();
+
+    for (var i = 0; i < 50; ++i)
+        AddRandomCube();
+
+    //AddCube();
 
     var context = renderer.domElement.getContext("2d");
 
@@ -55,11 +61,45 @@
         requestAnimationFrame(render);
         HandleControls();
         Picking();
-
+        updatePhysics();
         renderer.render(scene, camera);
     };
 
     render();
+
+
+
+    function initCannon() {
+
+        world = new CANNON.World();
+        world.gravity.set(0,0,0);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 10;
+    }
+
+    function updatePhysics() {
+        // Step the physics world
+        world.step(timeStep);
+
+        for(var i = 0; i < scene.children.length; ++i)
+        {
+            var obj = scene.children[i];
+
+            if(obj instanceof THREE.Mesh)
+            {
+                obj.joeysBody.position.copy(obj.position);
+                obj.joeysBody.quaternion.copy(obj.quaternion);
+            }
+
+            //bodies[i][0].position.copy(bodies[i][1].position);
+            //bodies[i][0].quaternion.copy(bodies[i][1].quaternion);
+        }
+
+        // Copy coordinates from Cannon.js to Three.js
+        //body.position.copy(mesh.position);
+        //body.quaternion.copy(mesh.quaternion);
+
+    }
 
     function click(event) {
         LockPointer();
@@ -75,7 +115,19 @@
     function mouseDown(event)
     {
         if(pickedObject != null)
-            pickedObject.material.color.setRGB(0,0,1);
+        {
+            //pickedObject.material.color.setRGB(0,0,1);
+
+            //pickedObject.joeysBody.applyForce(new CANNON.Vec3(0,1000,0), pickedObject.joeysBody.position);
+            var forceVector = forwardDirection.clone();
+            forceVector.multiplyScalar(100);
+            forceVector = new CANNON.Vec3(forceVector.x, forceVector.y, forceVector.z);
+
+            var point = new CANNON.Vec3(pickedObject.contactPoint.x, pickedObject.contactPoint.y, pickedObject.contactPoint.z);
+
+            pickedObject.joeysBody.applyForce(forceVector, point);
+        }
+
     }
 
     function keyDown(event) {

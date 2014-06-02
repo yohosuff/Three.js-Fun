@@ -1,7 +1,122 @@
-var enableLogging = true;
-var projector = new THREE.Projector();
-var forwardVector = new THREE.Vector3(0, 0, 0);
-var pickedObject = null;
+function Setup() {
+    //Setup everything.
+    SetupGlobalVariables();
+    SetupEventListeners();
+    SetupPhysics();
+    SetupRenderer();
+    SetupCamera();
+    SetupLights();
+    SetupCursor();
+    SetupFPSChart();
+    SetupSceneObjects();
+
+    //Start the render loop.
+    Render();
+}
+
+function SetupSceneObjects() {
+    for (var i = 0; i < 10; ++i)
+        AddRandomCube();
+
+    AddGround();
+}
+
+function SetupFPSChart() {
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '0px';
+    stats.domElement.style.zIndex = 100;
+    document.body.appendChild(stats.domElement);
+}
+
+function SetupCursor()
+{
+    var cursor	= document.createElement( 'label' );
+    cursor.innerHTML = "+";
+    cursor.style.position = 'absolute';
+    cursor.style.color = 'green';
+    //cursor.disabled = true;
+    document.body.appendChild( cursor );
+
+    var rect = cursor.getBoundingClientRect();
+    cursor.style.left = (window.innerWidth / 2 - rect.width / 2) + 'px';
+    cursor.style.bottom	= (window.innerHeight / 2 - rect.height / 2) + 'px';
+}
+
+function SetupLights()
+{
+    scene.add(new THREE.AmbientLight(0x000044));
+
+    var directionalLight = new THREE.DirectionalLight(0xffffff);
+    directionalLight.position.set(0, 100, 0);
+    directionalLight.castShadow = true;
+    directionalLight.shadowDarkness = 1.0;
+    directionalLight.shadowCameraVisible = false;
+    directionalLight.shadowBias = 0.01;
+    directionalLight.shadowCameraRight = 500;
+    directionalLight.shadowCameraLeft = -500;
+    directionalLight.shadowCameraTop = 500;
+    directionalLight.shadowCameraBottom = -500;
+    directionalLight.shadowCameraNear = 0;
+    directionalLight.shadowCameraFar = 110;
+
+    scene.add(directionalLight);
+}
+
+function SetupGlobalVariables()
+{
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+    cameraYawObject = new THREE.Object3D();
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    keyStates = [];
+    mouseIsDown = false;
+    speedFactor = 1;
+    rotationFactor = 1 / 500;
+    timeStep = 1 / 60;
+    enableLogging = true;
+    projector = new THREE.Projector();
+    forwardVector = new THREE.Vector3(0, 0, 0);
+    pickedObject = null;
+    forwardDirection = null;
+
+}
+
+function SetupCamera()
+{
+    camera.position = new THREE.Vector3(0, 0, 0);
+    camera.rotation.x = -0.25;
+    cameraYawObject.position = new THREE.Vector3(76, 114, 187);
+    cameraYawObject.rotation.y = 0.384;
+    cameraYawObject.add(camera);
+    scene.add(cameraYawObject);
+}
+
+function SetupRenderer()
+{
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMapEnabled = true;
+    renderer.shadowMapType = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+}
+
+function SetupEventListeners()
+{
+    document.addEventListener('mousemove', mouseMove, false);
+    document.addEventListener('click', click, false);
+    document.addEventListener('keydown', keyDown, false);
+    document.addEventListener('keyup', keyUp, false);
+    document.addEventListener('mousedown', mouseDown, false);
+    document.addEventListener('mouseup', mouseUp, false);
+}
+
+function SetupPhysics()
+{
+    world = new CANNON.World();
+    world.gravity.set(0, 0, 0);
+    world.broadphase = new CANNON.NaiveBroadphase();
+    world.solver.iterations = 10;
+}
 
 var Picking = function () {
     var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
@@ -14,8 +129,6 @@ var Picking = function () {
         var intersection = intersects[0],
             obj = intersection.object;
 
-        //obj.material.color.setRGB(1.0, 0, 0);
-
         pickedObject = obj;
         pickedObject.contactPoint = intersection.point;
     }
@@ -25,22 +138,6 @@ var Picking = function () {
     }
 };
 
-var PlaceCursor = function () {
-    var cursor	= document.createElement( 'label' );
-    cursor.innerHTML = "+";
-    cursor.style.position = 'absolute';
-    cursor.style.color = 'green';
-    cursor.disabled = true;
-    document.body.appendChild( cursor );
-
-    var rect = cursor.getBoundingClientRect();
-
-    cursor.style.left = (window.innerWidth / 2 - rect.width / 2) + 'px';
-    cursor.style.bottom	= (window.innerHeight / 2 - rect.height / 2) + 'px';
-
-};
-
-var forwardDirection = null;
 
 var HandleControls = function()
 {
@@ -79,7 +176,7 @@ var HandleControls = function()
     }
 };
 
-var bodies = [];
+
 
 function AddRandomCube() {
 
@@ -155,7 +252,7 @@ var LockPointer = function()
     }
 };
 
-var GoFullScreen = function()
+function GoFullScreen()
 {
     THREEx.WindowResize(renderer, camera);
 
@@ -171,7 +268,7 @@ var GoFullScreen = function()
     }
 };
 
-var log = function (message) {
+function log(message) {
     if(enableLogging)
         console.log(message);
 };
@@ -204,4 +301,58 @@ function logCameraInformation() {
 
 
     log(logString);
+}
+
+function updatePhysics() {
+    world.step(timeStep);
+
+    for (var i = 0; i < scene.children.length; ++i) {
+        var obj = scene.children[i];
+        if (obj instanceof THREE.Mesh) {
+            obj.physicsBody.position.copy(obj.position);
+            obj.physicsBody.quaternion.copy(obj.quaternion);
+        }
+    }
+}
+
+function click(event) {
+    LockPointer();
+    //GoFullScreen();
+}
+
+function mouseMove(event) {
+    if(document.webkitPointerLockElement != null)
+    {
+        camera.rotation.x -= event.webkitMovementY * rotationFactor;
+        camera.rotation.x = THREE.Math.clamp(camera.rotation.x, -Math.PI / 2, Math.PI / 2);
+        cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
+    }
+}
+
+function mouseUp(event) {
+    mouseIsDown = false;
+}
+
+function mouseDown(event) {
+    mouseIsDown = true;
+}
+
+function keyDown(event) {
+    keyStates[event.keyCode] = true;
+
+    if (event.keyCode == 32)
+        scene.add(AddRandomCube());
+}
+
+function keyUp(event) {
+    keyStates[event.keyCode] = false;
+}
+
+function Render() {
+    requestAnimationFrame(Render);
+    HandleControls();
+    Picking();
+    updatePhysics();
+    renderer.render(scene, camera);
+    stats.update();
 }

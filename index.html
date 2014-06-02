@@ -11,11 +11,48 @@
 </head>
 <body>
 <script>
-    var scene, camera, cameraYawObject, renderer, keyStates, mouseIsDown,
-        speedFactor, rotationFactor, world, timeStep, stats, enableLogging,
-        projector, forwardVector, pickedObject, forwardDirection;
+    var
+            scene,
+            camera,
+            cameraYawObject,
+            renderer,
+            keyStates,
+            leftMouseButtonDown,
+            rightMouseButtonDown,
+            speedFactor,
+            rotationFactor,
+            world,
+            timeStep,
+            stats,
+            enableLogging,
+            projector,
+            forwardVector,
+            pickedObject,
+            forwardDirection;
+
+    SetupGlobalVariables();
+
+    function SetupGlobalVariables()
+    {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        cameraYawObject = new THREE.Object3D();
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        keyStates = [];
+        leftMouseButtonDown = false;
+        rightMouseButtonDown = false;
+        speedFactor = 1;
+        rotationFactor = 1 / 500;
+        timeStep = 1 / 60;
+        enableLogging = true;
+        projector = new THREE.Projector();
+        forwardVector = new THREE.Vector3(0, 0, 0);
+        pickedObject = null;
+        forwardDirection = null;
+    }
 
     Setup();
+
 </script>
 </body>
 </html>

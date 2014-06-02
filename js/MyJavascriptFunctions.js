@@ -1,6 +1,5 @@
 function Setup() {
     //Setup everything.
-    SetupGlobalVariables();
     SetupEventListeners();
     SetupPhysics();
     SetupRenderer();
@@ -11,7 +10,7 @@ function Setup() {
     SetupSceneObjects();
 
     //Start the render loop.
-    Render();
+    Loop();
 }
 
 function SetupSceneObjects() {
@@ -29,22 +28,20 @@ function SetupFPSChart() {
     document.body.appendChild(stats.domElement);
 }
 
-function SetupCursor()
-{
-    var cursor	= document.createElement( 'label' );
+function SetupCursor() {
+    var cursor = document.createElement('label');
     cursor.innerHTML = "+";
     cursor.style.position = 'absolute';
     cursor.style.color = 'green';
     //cursor.disabled = true;
-    document.body.appendChild( cursor );
+    document.body.appendChild(cursor);
 
     var rect = cursor.getBoundingClientRect();
     cursor.style.left = (window.innerWidth / 2 - rect.width / 2) + 'px';
-    cursor.style.bottom	= (window.innerHeight / 2 - rect.height / 2) + 'px';
+    cursor.style.bottom = (window.innerHeight / 2 - rect.height / 2) + 'px';
 }
 
-function SetupLights()
-{
+function SetupLights() {
     scene.add(new THREE.AmbientLight(0x000044));
 
     var directionalLight = new THREE.DirectionalLight(0xffffff);
@@ -63,27 +60,7 @@ function SetupLights()
     scene.add(directionalLight);
 }
 
-function SetupGlobalVariables()
-{
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-    cameraYawObject = new THREE.Object3D();
-    renderer = new THREE.WebGLRenderer({antialias: true});
-    keyStates = [];
-    mouseIsDown = false;
-    speedFactor = 1;
-    rotationFactor = 1 / 500;
-    timeStep = 1 / 60;
-    enableLogging = true;
-    projector = new THREE.Projector();
-    forwardVector = new THREE.Vector3(0, 0, 0);
-    pickedObject = null;
-    forwardDirection = null;
-
-}
-
-function SetupCamera()
-{
+function SetupCamera() {
     camera.position = new THREE.Vector3(0, 0, 0);
     camera.rotation.x = -0.25;
     cameraYawObject.position = new THREE.Vector3(76, 114, 187);
@@ -92,16 +69,14 @@ function SetupCamera()
     scene.add(cameraYawObject);
 }
 
-function SetupRenderer()
-{
+function SetupRenderer() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMapEnabled = true;
     renderer.shadowMapType = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 }
 
-function SetupEventListeners()
-{
+function SetupEventListeners() {
     document.addEventListener('mousemove', mouseMove, false);
     document.addEventListener('click', click, false);
     document.addEventListener('keydown', keyDown, false);
@@ -110,8 +85,7 @@ function SetupEventListeners()
     document.addEventListener('mouseup', mouseUp, false);
 }
 
-function SetupPhysics()
-{
+function SetupPhysics() {
     world = new CANNON.World();
     world.gravity.set(0, 0, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
@@ -124,27 +98,24 @@ var Picking = function () {
     cursorDirection.applyEuler(totalRotation);
     var rayCaster = projector.pickingRay(cursorDirection.clone(), camera);
     var intersects = rayCaster.intersectObjects(scene.children);
-    if(intersects.length > 0)
-    {
+    if (intersects.length > 0) {
         var intersection = intersects[0],
             obj = intersection.object;
 
         pickedObject = obj;
         pickedObject.contactPoint = intersection.point;
     }
-    else
-    {
+    else {
         pickedObject = null;
     }
 };
 
 
-var HandleControls = function()
-{
+var HandleControls = function () {
     var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
     forwardDirection = new THREE.Vector3(0, 0, -1);
     var strafeDirection = new THREE.Vector3(1, 0, 0);
-    var upDirection = new THREE.Vector3(0,1,0);
+    var upDirection = new THREE.Vector3(0, 1, 0);
 
     forwardDirection.applyEuler(totalRotation);
     strafeDirection.applyEuler(totalRotation);
@@ -161,22 +132,52 @@ var HandleControls = function()
     if (keyStates[69]) cameraYawObject.position.add(upDirection); //e
     if (keyStates[81]) cameraYawObject.position.sub(upDirection); //q
 
-    if(mouseIsDown)
-    {
-        if(pickedObject != null)
-        {
+    if (leftMouseButtonDown) {
+        if (pickedObject != null) {
             var forceVector = forwardDirection.clone();
             forceVector.multiplyScalar(100);
-            forceVector = new CANNON.Vec3(forceVector.x, forceVector.y, forceVector.z);
 
-            var point = new CANNON.Vec3(pickedObject.contactPoint.x, pickedObject.contactPoint.y, pickedObject.contactPoint.z);
+            pickedObject.physicsBody.applyForce(
+                Three2Cannon_Vector3(forceVector),
+                Three2Cannon_Vector3(pickedObject.contactPoint));
 
-            pickedObject.physicsBody.applyForce(forceVector, point);
+        }
+    }
+
+    if (rightMouseButtonDown) {
+        if (pickedObject != null) {
+
+            //log(pickedObject.physicsBody.shape.halfExtents);
+
+            var xCounterAngularForcePosition = pickedObject.position.clone();
+            xCounterAngularForcePosition.add( new THREE.Vector3(pickedObject.physicsBody.shape.halfExtents.x,0,0));
+            //var xCounterAngularForce = new THREE.Vector3(pickedObject.physicsBody.angularVelocity.x, 0, 0);
+            var xCounterAngularForce = new THREE.Vector3(0, 0, 25);
+            //xCounterAngularForce.multiplyScalar(-1);
+
+            pickedObject.physicsBody.applyForce(
+                Three2Cannon_Vector3(xCounterAngularForce),
+                Three2Cannon_Vector3(xCounterAngularForcePosition));
+
+
+
+            var counterForce = Cannon2Three_Vector3(pickedObject.physicsBody.velocity).multiplyScalar(-5);
+
+            pickedObject.physicsBody.applyForce(
+                Three2Cannon_Vector3(counterForce),
+                Three2Cannon_Vector3(pickedObject.position));
+
         }
     }
 };
 
+function Three2Cannon_Vector3(input) {
+    return new CANNON.Vec3(input.x, input.y, input.z);
+}
 
+function Cannon2Three_Vector3(input) {
+    return new THREE.Vector3(input.x, input.y, input.z);
+}
 
 function AddRandomCube() {
 
@@ -192,9 +193,9 @@ function AddRandomCube() {
     cube.position.y = Math.floor(Math.random() * 100 + 10);
     cube.position.z = Math.floor(Math.random() * 100 - 50);
 
-    var shape = new CANNON.Box(new CANNON.Vec3(width/2,height/2,length/2));
+    var shape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, length / 2));
     var mass = 1;
-    var body = new CANNON.RigidBody(mass,shape);
+    var body = new CANNON.RigidBody(mass, shape);
 
     body.position.x = cube.position.x;
     body.position.y = cube.position.y;
@@ -218,9 +219,9 @@ function AddGround() {
     var material = new THREE.MeshLambertMaterial({color: 'blue'});
     var floor = new THREE.Mesh(geometry, material);
 
-    floor.position = new THREE.Vector3(0,0,0);
+    floor.position = new THREE.Vector3(0, 0, 0);
 
-    var shape = new CANNON.Box(new CANNON.Vec3(width/2,height/2,length/2));
+    var shape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, length / 2));
     var mass = 0;
     var body = new CANNON.RigidBody(mass, shape);
 
@@ -236,8 +237,7 @@ function AddGround() {
 
 }
 
-var LockPointer = function()
-{
+var LockPointer = function () {
     var havePointerLock = 'pointerLockElement' in document ||
         'mozPointerLockElement' in document ||
         'webkitPointerLockElement' in document;
@@ -252,8 +252,7 @@ var LockPointer = function()
     }
 };
 
-function GoFullScreen()
-{
+function GoFullScreen() {
     THREEx.WindowResize(renderer, camera);
 
     var fullscreenEnabled = document.fullscreenEnabled ||
@@ -269,7 +268,7 @@ function GoFullScreen()
 };
 
 function log(message) {
-    if(enableLogging)
+    if (enableLogging)
         console.log(message);
 };
 
@@ -321,8 +320,7 @@ function click(event) {
 }
 
 function mouseMove(event) {
-    if(document.webkitPointerLockElement != null)
-    {
+    if (document.webkitPointerLockElement != null) {
         camera.rotation.x -= event.webkitMovementY * rotationFactor;
         camera.rotation.x = THREE.Math.clamp(camera.rotation.x, -Math.PI / 2, Math.PI / 2);
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
@@ -330,11 +328,34 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-    mouseIsDown = false;
+    switch (event.button) {
+        case 0: //left mouse button
+            leftMouseButtonDown = false;
+            break;
+        case 2: //right mouse button
+            rightMouseButtonDown = false;
+            break;
+        default:
+            log('hmm....');
+            break;
+    }
 }
 
 function mouseDown(event) {
-    mouseIsDown = true;
+
+    switch (event.button) {
+        case 0: //left mouse button
+            leftMouseButtonDown = true;
+            break;
+        case 2: //right mouse button
+            rightMouseButtonDown = true;
+            break;
+        default:
+            log('hmm....');
+            break;
+    }
+
+
 }
 
 function keyDown(event) {
@@ -348,8 +369,8 @@ function keyUp(event) {
     keyStates[event.keyCode] = false;
 }
 
-function Render() {
-    requestAnimationFrame(Render);
+function Loop() {
+    requestAnimationFrame(Loop);
     HandleControls();
     Picking();
     updatePhysics();

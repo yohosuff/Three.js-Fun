@@ -137,36 +137,55 @@ var HandleControls = function () {
             var forceVector = forwardDirection.clone();
             forceVector.multiplyScalar(100);
 
+
+
             pickedObject.physicsBody.applyForce(
                 Three2Cannon_Vector3(forceVector),
                 Three2Cannon_Vector3(pickedObject.contactPoint));
 
+            log(pickedObject.physicsBody.angularVelocity);
         }
     }
 
     if (rightMouseButtonDown) {
         if (pickedObject != null) {
 
-            //log(pickedObject.physicsBody.shape.halfExtents);
+            var scaleFactor = 25;
+
+            var counterForce = Cannon2Three_Vector3(pickedObject.physicsBody.velocity).multiplyScalar(-scaleFactor);
+            pickedObject.physicsBody.applyForce(
+                Three2Cannon_Vector3(counterForce),
+                Three2Cannon_Vector3(pickedObject.position));
 
             var xCounterAngularForcePosition = pickedObject.position.clone();
-            xCounterAngularForcePosition.add( new THREE.Vector3(pickedObject.physicsBody.shape.halfExtents.x,0,0));
-            //var xCounterAngularForce = new THREE.Vector3(pickedObject.physicsBody.angularVelocity.x, 0, 0);
-            var xCounterAngularForce = new THREE.Vector3(0, 0, 25);
-            //xCounterAngularForce.multiplyScalar(-1);
+            xCounterAngularForcePosition.add( new THREE.Vector3(0, 0, pickedObject.physicsBody.shape.halfExtents.z));
+            var xCounterAngularForce = new THREE.Vector3(0,pickedObject.physicsBody.angularVelocity.x, 0);
+            xCounterAngularForce.multiplyScalar(scaleFactor);
 
             pickedObject.physicsBody.applyForce(
                 Three2Cannon_Vector3(xCounterAngularForce),
                 Three2Cannon_Vector3(xCounterAngularForcePosition));
 
-
-
-            var counterForce = Cannon2Three_Vector3(pickedObject.physicsBody.velocity).multiplyScalar(-5);
+            var yCounterAngularForcePosition = pickedObject.position.clone();
+            yCounterAngularForcePosition.add( new THREE.Vector3(pickedObject.physicsBody.shape.halfExtents.x,0,0));
+            var yCounterAngularForce = new THREE.Vector3(0,0,pickedObject.physicsBody.angularVelocity.y);
+            yCounterAngularForce.multiplyScalar(scaleFactor);
 
             pickedObject.physicsBody.applyForce(
-                Three2Cannon_Vector3(counterForce),
-                Three2Cannon_Vector3(pickedObject.position));
+                Three2Cannon_Vector3(yCounterAngularForce),
+                Three2Cannon_Vector3(yCounterAngularForcePosition));
 
+            var zCounterAngularForcePosition = pickedObject.position.clone();
+            zCounterAngularForcePosition.add( new THREE.Vector3(0, pickedObject.physicsBody.shape.halfExtents.y,0));
+            var zCounterAngularForce = new THREE.Vector3(pickedObject.physicsBody.angularVelocity.z,0,0);
+            zCounterAngularForce.multiplyScalar(scaleFactor);
+
+            pickedObject.physicsBody.applyForce(
+                Three2Cannon_Vector3(zCounterAngularForce),
+                Three2Cannon_Vector3(zCounterAngularForcePosition));
+
+
+            log(pickedObject.physicsBody.angularVelocity);
         }
     }
 };
@@ -317,6 +336,8 @@ function updatePhysics() {
 function click(event) {
     LockPointer();
     //GoFullScreen();
+
+
 }
 
 function mouseMove(event) {
@@ -324,6 +345,11 @@ function mouseMove(event) {
         camera.rotation.x -= event.webkitMovementY * rotationFactor;
         camera.rotation.x = THREE.Math.clamp(camera.rotation.x, -Math.PI / 2, Math.PI / 2);
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
+
+
+        if(pickedObject != null)
+            log(pickedObject.physicsBody.angularVelocity);
+
     }
 }
 

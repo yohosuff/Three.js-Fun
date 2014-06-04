@@ -110,8 +110,92 @@ var Picking = function () {
     }
 };
 
+function HandleControls() {
+    HandleKeys();
+    HandleLeftMouseButton();
+    HandleRightMouseButton();
+};
 
-var HandleControls = function () {
+function HandleLeftMouseButton() {
+    if (leftMouseButtonDown) {
+        if (pickedObject != null) {
+            var forceVector = forwardDirection.clone().multiplyScalar(100);
+
+            pickedObject.physicsBody.applyForce(
+                Three2Cannon_Vector3(forceVector),
+                Three2Cannon_Vector3(pickedObject.contactPoint));
+
+            //log(pickedObject.physicsBody.angularVelocity);
+        }
+    }
+}
+
+function HandleRightMouseButton() {
+    if (rightMouseButtonDown) {
+        if(keyStates[49]) //1
+        {
+            SmashVelocityAndRotation();
+        }
+        else
+        {
+            GrabObject();
+        }
+    }
+}
+
+function GrabObject()
+{
+    if(grabbedObject != null)
+    {
+        var targetPoint = cameraYawObject.position.clone().add(forwardDirection.clone().multiplyScalar(30));
+        var currentVelocity = Cannon2Three_Vector3(grabbedObject.physicsBody.velocity);
+        var desiredVelocity = targetPoint.clone().sub(grabbedObject.position).multiplyScalar(2.0);
+        var steeringForce = desiredVelocity.clone().sub(currentVelocity).normalize();
+        steeringForce.multiplyScalar(300);
+        grabbedObject.physicsBody.applyForce(Three2Cannon_Vector3(steeringForce), Three2Cannon_Vector3(grabbedObject.position));
+    }
+}
+
+function SmashVelocityAndRotation() {
+    if (pickedObject != null) {
+
+        var scaleFactor = 25;
+
+        var counterForce = Cannon2Three_Vector3(pickedObject.physicsBody.velocity).multiplyScalar(-scaleFactor);
+        pickedObject.physicsBody.applyForce(
+            Three2Cannon_Vector3(counterForce),
+            Three2Cannon_Vector3(pickedObject.position));
+
+        var xCounterAngularForcePosition = pickedObject.position.clone();
+        xCounterAngularForcePosition.add( new THREE.Vector3(0, 0, pickedObject.physicsBody.shape.halfExtents.z));
+        var xCounterAngularForce = new THREE.Vector3(0,pickedObject.physicsBody.angularVelocity.x, 0);
+        xCounterAngularForce.multiplyScalar(scaleFactor);
+
+        pickedObject.physicsBody.applyForce(
+            Three2Cannon_Vector3(xCounterAngularForce),
+            Three2Cannon_Vector3(xCounterAngularForcePosition));
+
+        var yCounterAngularForcePosition = pickedObject.position.clone();
+        yCounterAngularForcePosition.add( new THREE.Vector3(pickedObject.physicsBody.shape.halfExtents.x,0,0));
+        var yCounterAngularForce = new THREE.Vector3(0,0,pickedObject.physicsBody.angularVelocity.y);
+        yCounterAngularForce.multiplyScalar(scaleFactor);
+
+        pickedObject.physicsBody.applyForce(
+            Three2Cannon_Vector3(yCounterAngularForce),
+            Three2Cannon_Vector3(yCounterAngularForcePosition));
+
+        var zCounterAngularForcePosition = pickedObject.position.clone();
+        zCounterAngularForcePosition.add( new THREE.Vector3(0, pickedObject.physicsBody.shape.halfExtents.y,0));
+        var zCounterAngularForce = new THREE.Vector3(pickedObject.physicsBody.angularVelocity.z,0,0);
+        zCounterAngularForce.multiplyScalar(scaleFactor);
+
+        pickedObject.physicsBody.applyForce(
+            Three2Cannon_Vector3(zCounterAngularForce),
+            Three2Cannon_Vector3(zCounterAngularForcePosition));
+    }
+}
+
+function HandleKeys() {
     var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
     forwardDirection = new THREE.Vector3(0, 0, -1);
     var strafeDirection = new THREE.Vector3(1, 0, 0);
@@ -132,63 +216,7 @@ var HandleControls = function () {
     if (keyStates[69]) cameraYawObject.position.add(upDirection); //e
     if (keyStates[81]) cameraYawObject.position.sub(upDirection); //q
 
-    if (leftMouseButtonDown) {
-        if (pickedObject != null) {
-            var forceVector = forwardDirection.clone();
-            forceVector.multiplyScalar(100);
-
-
-
-            pickedObject.physicsBody.applyForce(
-                Three2Cannon_Vector3(forceVector),
-                Three2Cannon_Vector3(pickedObject.contactPoint));
-
-            log(pickedObject.physicsBody.angularVelocity);
-        }
-    }
-
-    if (rightMouseButtonDown) {
-        if (pickedObject != null) {
-
-            var scaleFactor = 25;
-
-            var counterForce = Cannon2Three_Vector3(pickedObject.physicsBody.velocity).multiplyScalar(-scaleFactor);
-            pickedObject.physicsBody.applyForce(
-                Three2Cannon_Vector3(counterForce),
-                Three2Cannon_Vector3(pickedObject.position));
-
-            var xCounterAngularForcePosition = pickedObject.position.clone();
-            xCounterAngularForcePosition.add( new THREE.Vector3(0, 0, pickedObject.physicsBody.shape.halfExtents.z));
-            var xCounterAngularForce = new THREE.Vector3(0,pickedObject.physicsBody.angularVelocity.x, 0);
-            xCounterAngularForce.multiplyScalar(scaleFactor);
-
-            pickedObject.physicsBody.applyForce(
-                Three2Cannon_Vector3(xCounterAngularForce),
-                Three2Cannon_Vector3(xCounterAngularForcePosition));
-
-            var yCounterAngularForcePosition = pickedObject.position.clone();
-            yCounterAngularForcePosition.add( new THREE.Vector3(pickedObject.physicsBody.shape.halfExtents.x,0,0));
-            var yCounterAngularForce = new THREE.Vector3(0,0,pickedObject.physicsBody.angularVelocity.y);
-            yCounterAngularForce.multiplyScalar(scaleFactor);
-
-            pickedObject.physicsBody.applyForce(
-                Three2Cannon_Vector3(yCounterAngularForce),
-                Three2Cannon_Vector3(yCounterAngularForcePosition));
-
-            var zCounterAngularForcePosition = pickedObject.position.clone();
-            zCounterAngularForcePosition.add( new THREE.Vector3(0, pickedObject.physicsBody.shape.halfExtents.y,0));
-            var zCounterAngularForce = new THREE.Vector3(pickedObject.physicsBody.angularVelocity.z,0,0);
-            zCounterAngularForce.multiplyScalar(scaleFactor);
-
-            pickedObject.physicsBody.applyForce(
-                Three2Cannon_Vector3(zCounterAngularForce),
-                Three2Cannon_Vector3(zCounterAngularForcePosition));
-
-
-            log(pickedObject.physicsBody.angularVelocity);
-        }
-    }
-};
+}
 
 function Three2Cannon_Vector3(input) {
     return new CANNON.Vec3(input.x, input.y, input.z);
@@ -291,36 +319,6 @@ function log(message) {
         console.log(message);
 };
 
-function logCameraInformation() {
-    var logString = "";
-    logString += camera.position.x;
-    logString += ", ";
-    logString += camera.position.y;
-    logString += ", ";
-    logString += camera.position.z;
-    logString += "   ";
-    logString += camera.rotation.x;
-    logString += ", ";
-    logString += camera.rotation.y;
-    logString += ", ";
-    logString += camera.rotation.z;
-    logString += "\n";
-    logString += cameraYawObject.position.x;
-    logString += ", ";
-    logString += cameraYawObject.position.y;
-    logString += ", ";
-    logString += cameraYawObject.position.z;
-    logString += "   ";
-    logString += cameraYawObject.rotation.x;
-    logString += ", ";
-    logString += cameraYawObject.rotation.y;
-    logString += ", ";
-    logString += cameraYawObject.rotation.z;
-
-
-    log(logString);
-}
-
 function updatePhysics() {
     world.step(timeStep);
 
@@ -336,8 +334,6 @@ function updatePhysics() {
 function click(event) {
     LockPointer();
     //GoFullScreen();
-
-
 }
 
 function mouseMove(event) {
@@ -345,11 +341,6 @@ function mouseMove(event) {
         camera.rotation.x -= event.webkitMovementY * rotationFactor;
         camera.rotation.x = THREE.Math.clamp(camera.rotation.x, -Math.PI / 2, Math.PI / 2);
         cameraYawObject.rotation.y -= event.webkitMovementX * rotationFactor;
-
-
-        if(pickedObject != null)
-            log(pickedObject.physicsBody.angularVelocity);
-
     }
 }
 
@@ -360,6 +351,8 @@ function mouseUp(event) {
             break;
         case 2: //right mouse button
             rightMouseButtonDown = false;
+            HuckGrabbedObject();
+            grabbedObject = null;
             break;
         default:
             log('hmm....');
@@ -367,21 +360,31 @@ function mouseUp(event) {
     }
 }
 
-function mouseDown(event) {
+function HuckGrabbedObject() {
+    if(grabbedObject != null && keyStates[50])
+    {
+        grabbedObject.physicsBody.applyForce(
+            Three2Cannon_Vector3(forwardDirection.normalize().multiplyScalar(10000)),
+            Three2Cannon_Vector3(grabbedObject.position));
+    }
+}
 
+function mouseDown(event) {
     switch (event.button) {
         case 0: //left mouse button
             leftMouseButtonDown = true;
             break;
         case 2: //right mouse button
             rightMouseButtonDown = true;
+
+            if(pickedObject != null)
+                grabbedObject = pickedObject;
+
             break;
         default:
             log('hmm....');
             break;
     }
-
-
 }
 
 function keyDown(event) {
@@ -389,6 +392,8 @@ function keyDown(event) {
 
     if (event.keyCode == 32)
         scene.add(AddRandomCube());
+
+    log(event.keyCode);
 }
 
 function keyUp(event) {

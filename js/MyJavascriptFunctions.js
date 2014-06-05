@@ -161,12 +161,14 @@ function HandleRightMouseButton() {
     if (rightMouseButtonDown) {
         if(keyStates[49]) //1
         {
-            SmashVelocityAndRotation();
+            SmashRotation();
+			SmashVelocity();
         }
         else
         {
             //GrabObject();
             GrabObjectBetter();
+			SmashVelocity();
         }
     }
 }
@@ -201,15 +203,10 @@ function GrabObject()
     }
 }
 
-function SmashVelocityAndRotation() {
-    if (pickedObject != null) {
+function SmashRotation() {
+	if (pickedObject != null) {
 
         var scaleFactor = 25;
-
-        var counterForce = Cannon2Three_Vector3(pickedObject.physicsBody.velocity).multiplyScalar(-scaleFactor);
-        pickedObject.physicsBody.applyForce(
-            Three2Cannon_Vector3(counterForce),
-            Three2Cannon_Vector3(pickedObject.position));
 
         var xCounterAngularForcePosition = pickedObject.position.clone();
         xCounterAngularForcePosition.add( new THREE.Vector3(0, 0, pickedObject.physicsBody.shape.halfExtents.z));
@@ -237,6 +234,19 @@ function SmashVelocityAndRotation() {
         pickedObject.physicsBody.applyForce(
             Three2Cannon_Vector3(zCounterAngularForce),
             Three2Cannon_Vector3(zCounterAngularForcePosition));
+    }
+}
+
+function SmashVelocity()
+{
+	if (grabbedObject != null) {
+
+        var scaleFactor = 10;
+
+        var counterForce = Cannon2Three_Vector3(grabbedObject.physicsBody.velocity).multiplyScalar(-scaleFactor);
+        grabbedObject.physicsBody.applyForce(
+            Three2Cannon_Vector3(counterForce),
+            Three2Cannon_Vector3(grabbedObject.position));
     }
 }
 

@@ -29,13 +29,19 @@
             forwardVector,
             pickedObject,
             forwardDirection,
-            grabbedObject;
+            grabbedObject,
+            viewportWidth,
+            viewportHeight,
+            distanceConstraint,
+            distanceConstraintTargetBody;
 
     SetupGlobalVariables();
 
     function SetupGlobalVariables() {
+        viewportWidth = 900;
+        viewportHeight = 900;
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera = new THREE.PerspectiveCamera(60, viewportWidth / viewportHeight, 0.1, 2000);
         cameraYawObject = new THREE.Object3D();
         renderer = new THREE.WebGLRenderer({antialias: true});
         keyStates = [];
@@ -50,6 +56,8 @@
         pickedObject = null;
         forwardDirection = null;
         grabbedObject = null;
+        distanceConstraint = null;
+        distanceConstraintTargetBody = null;
     }
 
     Setup();

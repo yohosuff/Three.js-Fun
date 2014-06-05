@@ -8,12 +8,26 @@ function Setup() {
     SetupCursor();
     SetupFPSChart();
     SetupSceneObjects();
+    //SetupWatches();
 
     //Start the render loop.
     Loop();
 }
 
+function SetupWatches()
+{
+    var div = document.createElement("div");
+    div.id = "testDiv";
+    div.innerHTML = "Test";
+    div.style.color = 'green';
+    div.style.position = 'absolute';
+    div.style.left = viewportWidth+ 5;
+    div.style.top = 5;
+    document.body.appendChild(div);
+}
+
 function SetupSceneObjects() {
+
     for (var i = 0; i < 10; ++i)
         AddRandomCube();
 
@@ -37,8 +51,8 @@ function SetupCursor() {
     document.body.appendChild(cursor);
 
     var rect = cursor.getBoundingClientRect();
-    cursor.style.left = (window.innerWidth / 2 - rect.width / 2) + 'px';
-    cursor.style.bottom = (window.innerHeight / 2 - rect.height / 2) + 'px';
+    cursor.style.left = (viewportWidth / 2 - rect.width / 2) + 'px';
+    cursor.style.bottom = (window.innerHeight - (viewportHeight / 2 + rect.height / 2)) + 'px';
 }
 
 function SetupLights() {
@@ -70,7 +84,7 @@ function SetupCamera() {
 }
 
 function SetupRenderer() {
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(viewportWidth, viewportHeight);
     renderer.shadowMapEnabled = true;
     renderer.shadowMapType = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
@@ -90,17 +104,32 @@ function SetupPhysics() {
     world.gravity.set(0, 0, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
     world.solver.iterations = 10;
+
+    distanceConstraintTargetBody = new CANNON.Particle(0);
+    distanceConstraintTargetBody.collisionFilterGroup = 2;
+    world.add(distanceConstraintTargetBody);
+
+    //PhysicsTest();
+
 }
 
-var Picking = function () {
+function PhysicsTest() {
+    var c1 = AddRandomCube();
+    var c2 = AddRandomCube();
+
+    world.addConstraint(new CANNON.DistanceConstraint(c1.physicsBody, c2.physicsBody, 100.0, 100));
+    world.removeConstraint()
+}
+
+function Picking() {
     var totalRotation = new THREE.Euler(camera.rotation.x, cameraYawObject.rotation.y, 0, "YXZ");
     var cursorDirection = forwardVector.clone();
     cursorDirection.applyEuler(totalRotation);
     var rayCaster = projector.pickingRay(cursorDirection.clone(), camera);
     var intersects = rayCaster.intersectObjects(scene.children);
     if (intersects.length > 0) {
-        var intersection = intersects[0],
-            obj = intersection.object;
+        var intersection = intersects[0];
+        var obj = intersection.object;
 
         pickedObject = obj;
         pickedObject.contactPoint = intersection.point;
@@ -124,8 +153,6 @@ function HandleLeftMouseButton() {
             pickedObject.physicsBody.applyForce(
                 Three2Cannon_Vector3(forceVector),
                 Three2Cannon_Vector3(pickedObject.contactPoint));
-
-            //log(pickedObject.physicsBody.angularVelocity);
         }
     }
 }
@@ -138,8 +165,26 @@ function HandleRightMouseButton() {
         }
         else
         {
-            GrabObject();
+            //GrabObject();
+            GrabObjectBetter();
         }
+    }
+}
+
+function GrabObjectBetter()
+{
+    if(grabbedObject != null)
+    {
+        var targetPoint = cameraYawObject.position.clone().add(forwardDirection.clone().normalize().multiplyScalar(30));
+        distanceConstraintTargetBody.position = Three2Cannon_Vector3(targetPoint);
+
+        if(distanceConstraint == null)
+        {
+            distanceConstraint = new CANNON.DistanceConstraint(grabbedObject.physicsBody, distanceConstraintTargetBody, 0.000001, 100);
+            world.addConstraint(distanceConstraint);
+            log("added constraint");
+        }
+
     }
 }
 
@@ -147,11 +192,11 @@ function GrabObject()
 {
     if(grabbedObject != null)
     {
-        var targetPoint = cameraYawObject.position.clone().add(forwardDirection.clone().multiplyScalar(30));
+        var targetPoint = cameraYawObject.position.clone().add(forwardDirection.clone().normalize().multiplyScalar(30));
         var currentVelocity = Cannon2Three_Vector3(grabbedObject.physicsBody.velocity);
-        var desiredVelocity = targetPoint.clone().sub(grabbedObject.position).multiplyScalar(2.0);
-        var steeringForce = desiredVelocity.clone().sub(currentVelocity).normalize();
-        steeringForce.multiplyScalar(300);
+        var desiredVelocity = targetPoint.clone().sub(grabbedObject.position);
+        var distance = desiredVelocity.length;
+        var steeringForce = desiredVelocity.clone().sub(currentVelocity);
         grabbedObject.physicsBody.applyForce(Three2Cannon_Vector3(steeringForce), Three2Cannon_Vector3(grabbedObject.position));
     }
 }
@@ -255,6 +300,7 @@ function AddRandomCube() {
     world.add(cube.physicsBody);
     scene.add(cube);
 
+    return cube;
 }
 
 function AddGround() {
@@ -329,6 +375,7 @@ function updatePhysics() {
             obj.physicsBody.quaternion.copy(obj.quaternion);
         }
     }
+
 }
 
 function click(event) {
@@ -353,6 +400,9 @@ function mouseUp(event) {
             rightMouseButtonDown = false;
             HuckGrabbedObject();
             grabbedObject = null;
+            if(world.constraints.indexOf(distanceConstraint) != -1)
+                world.removeConstraint(distanceConstraint);
+            distanceConstraint = null;
             break;
         default:
             log('hmm....');
@@ -378,7 +428,11 @@ function mouseDown(event) {
             rightMouseButtonDown = true;
 
             if(pickedObject != null)
+            {
                 grabbedObject = pickedObject;
+                log("grabbed: " + grabbedObject);
+            }
+
 
             break;
         default:
@@ -400,11 +454,22 @@ function keyUp(event) {
     keyStates[event.keyCode] = false;
 }
 
+function UpdateWatches()
+{
+    if(grabbedObject != null)
+    {
+        var temp = grabbedObject.physicsBody.velocity;
+        document.getElementById("testDiv").innerHTML = Math.abs(temp.x.toFixed(2)) + ", " + Math.abs(temp.y.toFixed(2)) + ", " + Math.abs(temp.z.toFixed(2));
+    }
+
+}
+
 function Loop() {
     requestAnimationFrame(Loop);
     HandleControls();
     Picking();
     updatePhysics();
+    //UpdateWatches();
     renderer.render(scene, camera);
     stats.update();
 }

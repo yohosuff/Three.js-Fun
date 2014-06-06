@@ -70,8 +70,18 @@ function SetupLights() {
     directionalLight.shadowCameraBottom = -500;
     directionalLight.shadowCameraNear = 0;
     directionalLight.shadowCameraFar = 110;
-
     scene.add(directionalLight);
+
+    
+    AddDirectionalLight(1,1,1, 0xff0000);
+    AddDirectionalLight(-1,-1,-1, 0x00ff00);
+}
+
+function AddDirectionalLight(x, y, z, color) {
+    var position = new THREE.Vector3(x, y, z);
+    var light = new THREE.DirectionalLight(color);
+    light.position = position;
+    scene.add(light);
 }
 
 function SetupCamera() {
